@@ -212,6 +212,7 @@
             cubeVertexPositionBuffer = gl.createBuffer()
             gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer)
             vertices2 = [
+
                 2.0, 2.0, 2.0,
                 2.0, -2.0, 2.0,
                 -2.0, 2.0, 2.0,
@@ -260,19 +261,12 @@
 
         var temp
         var last
-        function changeColor()
+        function changeCubeColor()
         {
             temp = Math.floor((rTri%360)/30)
             if(temp != last )
             {
                 last = temp
-                gl.bindBuffer(gl.ARRAY_BUFFER, letterVertexColorBuffer)
-                var color = []
-                for (var i=0; i < letterVerticesCount; i++) {
-                    color = color.concat([Math.random(),Math.random(),Math.random(), 1.0]);
-                }
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(color), gl.STATIC_DRAW)
-
                 gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
                 var colors = [];
                 for (var i=0; i < cubeVerticesCount; i++) {
@@ -284,29 +278,31 @@
 
         var cenX=0.0
         var cenY=0.0
-        var cenZ=0.0
+        var cenZ=0.25
         var turn = [1,1,1]
+        var lrTurn = 1.0
         function letterMove()
         {
             gl.bindBuffer(gl.ARRAY_BUFFER, letterVertexPositionBuffer)
-            vertices1 = matrixTranslating(vertices1,turn[0]*0.01,turn[1]*0.01,turn[2]*0.01)
-            cenX+=(turn[0]*0.01)
-            cenY+=(turn[1]*0.01)
-            cenZ+=(turn[2]*0.01)
-            vertices1 = matrixRotating(vertices1,turn[0]*3,cenX,cenZ)
+            vertices1 = matrixTranslating(vertices1,turn[0]*0.05,turn[1]*0.05,turn[2]*0.05)
+            cenX+=(turn[0]*0.05)
+            cenY+=(turn[1]*0.05)
+            cenZ+=(turn[2]*0.05)
+            vertices1 = matrixRotating(vertices1,lrTurn*1.5,cenX,cenZ)
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices1), gl.STATIC_DRAW)
         }
 
-        var pointArr = [0,15,18,21,33,45]
+        var pointArr = [0,15,18,21,33,45,129,42,105,90,126,69]
         function detectionCollision()
         {
             for(var i = 0;i<turn.length;i++)
             {
                 for(var k=0;k<pointArr.length;k++)
                 {
-                    if(vertices1[pointArr[k]+i]>=6 || vertices1[pointArr[k]+i]<=-6)
+                    if(Math.abs(vertices1[pointArr[k]+i])>=6)
                     {
                         turn[i]*=-1
+                        lrTurn*=-1
                         break
                     }
                 }
@@ -314,15 +310,14 @@
         }
 
         function drawScene() {
-            changeColor()
+            changeCubeColor()
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight)
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
             mat4.perspective(pMatrix, glMatrix.toRadian(60), gl.viewportWidth / gl.viewportHeight, 0.1, 100.0)
             mat4.identity(mvMatrix)
-
             mat4.translate(mvMatrix, mvMatrix, [0.0, 0.0, -20.0])
-            detectionCollision()
             letterMove()
+            detectionCollision()
             gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, letterVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
             gl.bindBuffer(gl.ARRAY_BUFFER, letterVertexColorBuffer)
             gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, letterVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0)
